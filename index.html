@@ -422,7 +422,15 @@ function setSyncStatus(online){
 
 // ── STORE API EXTRACTORS ─────────────────────────────────────────────────────
 const proxy = "https://civxewtqgypsiormirwu.supabase.co/functions/v1/proxy?url=";
-fetch(proxy + encodeURIComponent(url));
+fetch(proxy + encodeURIComponent(url), {
+  headers: {
+    apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdnhld3RxZ3lwc2lvcm1pcnd1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDcyNzM1OSwiZXhwIjoyMDkwMzAzMzU5fQ.PInzR62bPju0Dwn8Z8dMdSO7kP1NbOMmU_EPVVPR048",
+    Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdnhld3RxZ3lwc2lvcm1pcnd1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDcyNzM1OSwiZXhwIjoyMDkwMzAzMzU5fQ.PInzR62bPju0Dwn8Z8dMdSO7kP1NbOMmU_EPVVPR048"
+  }
+})
+.then(res => res.text())
+.then(data => console.log(data))
+.catch(err => console.error(err));
 
 async function getZara(url){
   const m=url.match(/p(\d+)\.html/);
