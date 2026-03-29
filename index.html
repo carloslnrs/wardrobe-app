@@ -425,7 +425,6 @@ function setSyncStatus(online){
 const PROXY_URL='https://civxewtqgypsiormirwu.supabase.co/functions/v1/proxy';
 
 async function proxyFetch(url){
-  // Get current session token if available, fallback to anon key
   const sess=sb?(await sb.auth.getSession())?.data?.session:null;
   const token=sess?.access_token||SUPABASE_KEY;
   const res=await fetch(PROXY_URL,{
@@ -438,9 +437,12 @@ async function proxyFetch(url){
     body:JSON.stringify({url})
   });
   if(!res.ok)throw new Error('Proxy error '+res.status);
-  const{body,error}=await res.json();
-  if(error)throw new Error(error);
-  return body;
+  const result=await res.json();
+  if(result.error)throw new Error(result.error);
+  // Check if body looks like HTML instead of JSON
+  const b=(result.body||'').trim();
+  if(b.startsWith('<'))throw new Error('Got HTML instead of JSON — store blocked the request');
+  return b;
 }
 
 async function getZara(url){
