@@ -421,7 +421,8 @@ function setSyncStatus(online){
 }
 
 // ── STORE API EXTRACTORS ─────────────────────────────────────────────────────
-const PROXY='https://api.allorigins.win/get?url=';
+const proxy = "https://civxewtqgypsiormirwu.supabase.co/functions/v1/proxy?url=";
+fetch(proxy + encodeURIComponent(url));
 
 async function getZara(url){
   const m=url.match(/p(\d+)\.html/);
