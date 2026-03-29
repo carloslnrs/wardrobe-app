@@ -417,56 +417,31 @@ function setSyncStatus(online){
   const lbl=document.getElementById('syncLabel');
   if(!dot)return;
   dot.className='sync-dot '+(online?'online':'offline');
-lbl.textContent = online ? (sbUser ? sbUser.email : 'online') : 'Sin conexión';
+  lbl.textContent=online?(sbUser?sbUser.email:'online'):'Sin conexión';
+}
 
-// ── CONSTANTES PROXY Y ANON KEY ──────────────────────────────────────────────
-const PROXY = "https://civxewtqgypsiormirwu.supabase.co/functions/v1/proxy?url=";
-const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdnhld3RxZ3lwc2lvcm1pcnd1Iiwicm9sZSI6InNlcnZlcl9yb2xlIiwiaWF0IjoxNzc0NzI3MzU5LCJleHAiOjIwOTAzMDMzNTl9.PInzR62bPju0Dwn8Z8dMdSO7kP1NbOMmU_EPVVPR048";
+// ── STORE API EXTRACTORS ─────────────────────────────────────────────────────
+// ── PROXY (Supabase Edge Function) ───────────────────────────────────────────
+const PROXY_URL='https://civxewtqgypsiormirwu.supabase.co/functions/v1/proxy';
 
-// ── FUNCIÓN GENÉRICA DE FETCH POR PROXY ────────────────────────────────────
-async function fetchViaProxy(url) {
-  const res = await fetch(PROXY + encodeURIComponent(url), {
-    headers: {
-      apikey: ANON_KEY,
-      Authorization: `Bearer ${ANON_KEY}`
-    }
+async function proxyFetch(url){
+  // Get current session token if available, fallback to anon key
+  const sess=sb?(await sb.auth.getSession())?.data?.session:null;
+  const token=sess?.access_token||SUPABASE_KEY;
+  const res=await fetch(PROXY_URL,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey':SUPABASE_KEY,
+      'Authorization':'Bearer '+token
+    },
+    body:JSON.stringify({url})
   });
-  return res.text();
+  if(!res.ok)throw new Error('Proxy error '+res.status);
+  const{body,error}=await res.json();
+  if(error)throw new Error(error);
+  return body;
 }
-
-// ── FUNCIÓN GET ZARA ───────────────────────────────────────────────────────
-async function getZara(url) {
-  const m = url.match(/p(\d+)\.html/);
-  if(!m) throw new Error('no id');
-  const id = m[1];
-
-  // Detect locale from URL
-  const locale = url.match(/zara\.com\/([a-z]{2}\/[a-z]{2})\//)?.[1] || 'es/es';
-  const api = `https://www.zara.com/${locale}/product/${id}.json`;
-
-  const outer = await fetchViaProxy(api);
-  const d = JSON.parse(outer);
-  const color = d.detail?.colors?.[0]?.name || null;
-  const imgBase = d.detail?.colors?.[0]?.images?.[0];
-  let image = null;
-
-  if(imgBase) image = imgBase[0]; // primera imagen
-
-  return { id, color, image };
-}
-
-// ── EJEMPLO DE PRUEBA ──────────────────────────────────────────────────────
-fetchViaProxy("https://www.zara.com")
-  .then(data => console.log(data.slice(0, 500))) // primeras 500 letras para probar
-  .catch(err => console.error("Error:", err));
-
-  if(imgBase) image = imgBase[0]; // primera imagen
-
-  return { id, color, image };
-}
-.then(res => res.text())
-.then(data => console.log(data))
-.catch(err => console.error(err));
 
 async function getZara(url){
   const m=url.match(/p(\d+)\.html/);
@@ -475,8 +450,7 @@ async function getZara(url){
   // Detect locale from URL
   const locale=url.match(/zara\.com\/([a-z]{2}\/[a-z]{2})\//)?.[1]||'es/es';
   const api=`https://www.zara.com/${locale}/product/${id}.json`;
-  const outer=await res.json();
-  const d=JSON.parse(outer.contents);
+  const d=JSON.parse(await proxyFetch(api));
   const color=d.detail?.colors?.[0]?.name||null;
   const imgBase=d.detail?.colors?.[0]?.images?.[0];
   let image=null;
@@ -501,9 +475,7 @@ async function getBershka(url){
   if(!m)throw new Error('no id');
   const id=m[1];
   const api=`https://www.bershka.com/itxrest/2/catalog/store/45109560/50209553/product/${id}/detail`;
-  const res=await fetch(PROXY+encodeURIComponent(api));
-  const outer=await res.json();
-  const d=JSON.parse(outer.contents);
+  const d=JSON.parse(await proxyFetch(api));
   const color=d.detail?.colors?.[0]?.name||null;
   const img=d.detail?.colors?.[0]?.images?.[0]?.url||null;
   return{
@@ -520,9 +492,7 @@ async function getPull(url){
   if(!m)throw new Error('no id');
   const id=m[1];
   const api=`https://www.pullandbear.com/itxrest/2/catalog/store/25009521/20309454/product/${id}/detail`;
-  const res=await fetch(PROXY+encodeURIComponent(api));
-  const outer=await res.json();
-  const d=JSON.parse(outer.contents);
+  const d=JSON.parse(await proxyFetch(api));
   const color=d.detail?.colors?.[0]?.name||null;
   const img=d.detail?.colors?.[0]?.images?.[0]?.url||null;
   return{
@@ -539,9 +509,7 @@ async function getHM(url){
   if(!m)throw new Error('no id');
   const id=m[1];
   const api=`https://www2.hm.com/es_es/productpage.${id}.json`;
-  const res=await fetch(PROXY+encodeURIComponent(api));
-  const outer=await res.json();
-  const d=JSON.parse(outer.contents);
+  const d=JSON.parse(await proxyFetch(api));
   const prod=d.product||d;
   const img=prod.images?.[0]?.url||null;
   return{
@@ -560,9 +528,7 @@ async function getMango(url){
   if(!m)throw new Error('no id');
   const id=m[1];
   const api=`https://shop.mango.com/services/garments/${id}?domain=shop.mango.com&locale=es_ES`;
-  const res=await fetch(PROXY+encodeURIComponent(api));
-  const outer=await res.json();
-  const d=JSON.parse(outer.contents);
+  const d=JSON.parse(await proxyFetch(api));
   const color=d.colors?.find(c=>c.selected)?.label||d.colors?.[0]?.label||null;
   const img=d.colors?.[0]?.images?.[0]?.src||d.images?.[0]?.src||null;
   return{
@@ -577,9 +543,7 @@ async function getMango(url){
 
 // Open Graph / meta fallback for unsupported stores
 async function getGeneric(url){
-  const res=await fetch(PROXY+encodeURIComponent(url));
-  const outer=await res.json();
-  const html=outer.contents||'';
+  const html=await proxyFetch(url)||'';
   const parser=new DOMParser();
   const doc=parser.parseFromString(html,'text/html');
   const meta=(props)=>{for(const p of props){const el=doc.querySelector(`meta[property="${p}"],meta[name="${p}"]`);if(el)return el.getAttribute('content');}return null;};
