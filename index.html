@@ -173,42 +173,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);displ
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:4px}
 
-/* LOGIN SCREEN */
-.auth-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center}
-.auth-screen.hidden{display:none}
-.auth-card{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);padding:32px 28px;width:320px}
-.auth-title{font-size:17px;font-weight:500;margin-bottom:6px}
-.auth-sub{font-size:13px;color:var(--tx3);margin-bottom:24px}
-.auth-field{margin-bottom:14px}
-.auth-field label{display:block;font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px}
-.auth-field input{width:100%;padding:9px 12px;border:1px solid var(--bord);border-radius:var(--rsm);background:var(--surf2);color:var(--tx);font-size:13px;font-family:inherit;outline:none;transition:border .15s}
-.auth-field input:focus{border-color:var(--bord2);background:#fff}
-.auth-btn{width:100%;padding:10px;background:var(--tx);color:#fff;border:none;border-radius:var(--rsm);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:opacity .15s;margin-top:4px}
-.auth-btn:hover{opacity:.82}
-.auth-btn:disabled{opacity:.4;cursor:not-allowed}
-.auth-toggle{text-align:center;margin-top:14px;font-size:12px;color:var(--tx3)}
-.auth-toggle a{color:var(--tx2);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
-.auth-err{font-size:12px;color:#c0392b;margin-top:8px;text-align:center;min-height:16px}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--bord2);display:inline-block;margin-right:5px;vertical-align:middle}
-.sync-dot.online{background:#3b8a5e}
-.sync-dot.offline{background:#c8973a}
 </style>
 </head>
 <body>
 
-
-<!-- LOGIN SCREEN -->
-<div class="auth-screen" id="authScreen">
-  <div class="auth-card">
-    <div class="auth-title">Wardrobe</div>
-    <div class="auth-sub" id="authSub">Inicia sesión para continuar</div>
-    <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')authSubmit()"></div>
-    <div class="auth-field"><label>Contraseña</label><input type="password" id="authPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSubmit()"></div>
-    <button class="auth-btn" id="authBtn" onclick="authSubmit()">Entrar</button>
-    <div class="auth-err" id="authErr"></div>
-    <div class="auth-toggle">¿No tienes cuenta? <a onclick="toggleAuthMode()">Regístrate</a></div>
-  </div>
-</div>
 
 <div class="lb" id="lb"></div>
 <div class="tst" id="tst"></div>
@@ -269,14 +237,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);displ
   </div>
 
   <div class="s-bot">
-    <div style="display:flex;align-items:center;padding:0 18px;margin-bottom:8px;font-size:11px;color:var(--tx3)">
-      <span class="sync-dot" id="syncDot"></span>
-      <span id="syncLabel">—</span>
-    </div>
-    <div class="s-set" onclick="authSignOut()" style="color:var(--tx3)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Cerrar sesión
-    </div>
     <div class="s-set">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Ajustes
@@ -860,87 +820,43 @@ function toast(msg){const el=document.getElementById('tst');el.textContent=msg;e
 
 // ── BOOT ─────────────────────────────────────────────────────────────────────
 async function boot(){
-  // No Supabase configured → run fully offline
   if(!sb){
-    setSyncStatus(false);
-    document.getElementById('authScreen').classList.add('hidden');
     updcounts();rfilters();render();
     return;
   }
-
-  // Check for existing session
+  // Connect anonymously — no login required
+  // All data is scoped to this device via localStorage + synced to Supabase
+  // using a stable anonymous session per device
   const{data:{session}}=await sb.auth.getSession();
-  if(session){
-    sbUser=session.user;
-    setSyncStatus(true);
-    document.getElementById('authScreen').classList.add('hidden');
-    const loaded=await sbLoadAll();
-    if(loaded){updcounts();rfilters();render();}
-    else{updcounts();rfilters();render();}
-    await sbSyncOffline();
+  if(!session){
+    // Sign in anonymously (Supabase anon sign-in must be enabled in dashboard)
+    const{data,error}=await sb.auth.signInAnonymously();
+    if(error){
+      console.warn('Supabase anon sign-in failed, running offline:',error.message);
+      setSyncStatus(false);
+      updcounts();rfilters();render();
+      return;
+    }
+    sbUser=data.user;
   } else {
-    // Show login screen, render with localStorage data in background
-    setSyncStatus(false);
-    updcounts();rfilters();render();
+    sbUser=session.user;
   }
+  setSyncStatus(true);
+  const loaded=await sbLoadAll();
+  if(loaded){updcounts();rfilters();render();}
+  else{updcounts();rfilters();render();}
+  await sbSyncOffline();
 
-  // Listen for auth state changes (login / logout)
   sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session){
+    if((event==='SIGNED_IN'||event==='TOKEN_REFRESHED')&&session){
       sbUser=session.user;
       setSyncStatus(true);
-      document.getElementById('authScreen').classList.add('hidden');
-      const loaded=await sbLoadAll();
-      if(loaded){updcounts();rfilters();render();}
-      await sbSyncOffline();
-    }
-    if(event==='SIGNED_OUT'){
-      sbUser=null;setSyncStatus(false);
-      items=[];localStorage.removeItem('wl3');
-      updcounts();rfilters();render();
     }
   });
 }
 
-// ── AUTH UI ───────────────────────────────────────────────────────────────────
-let authMode='login'; // 'login' | 'signup'
-
-function toggleAuthMode(){
-  authMode=authMode==='login'?'signup':'login';
-  document.getElementById('authBtn').textContent=authMode==='login'?'Entrar':'Crear cuenta';
-  document.getElementById('authSub').textContent=authMode==='login'?'Inicia sesión para continuar':'Crea tu cuenta gratuita';
-  document.querySelector('.auth-toggle').innerHTML=authMode==='login'
-    ?'¿No tienes cuenta? <a onclick="toggleAuthMode()">Regístrate</a>'
-    :'¿Ya tienes cuenta? <a onclick="toggleAuthMode()">Inicia sesión</a>';
-  document.getElementById('authErr').textContent='';
-}
-
-async function authSubmit(){
-  if(!sb)return;
-  const email=document.getElementById('authEmail').value.trim();
-  const pass=document.getElementById('authPass').value;
-  const btn=document.getElementById('authBtn');
-  const err=document.getElementById('authErr');
-  if(!email||!pass){err.textContent='Rellena email y contraseña';return;}
-  btn.disabled=true;err.textContent='';
-  let result;
-  if(authMode==='login'){
-    result=await sb.auth.signInWithPassword({email,password:pass});
-  } else {
-    result=await sb.auth.signUp({email,password:pass});
-  }
-  btn.disabled=false;
-  if(result.error){
-    const msgs={'Invalid login credentials':'Email o contraseña incorrectos','User already registered':'Ya existe una cuenta con ese email','Password should be at least 6 characters':'La contraseña debe tener al menos 6 caracteres'};
-    err.textContent=msgs[result.error.message]||result.error.message;
-  }
-}
-
-async function authSignOut(){
-  if(!sb)return;
-  await sb.auth.signOut();
-  document.getElementById('authScreen').classList.remove('hidden');
-  toast('Sesión cerrada');
+function setSyncStatus(online){
+  sbOnline=online;
 }
 
 boot();
